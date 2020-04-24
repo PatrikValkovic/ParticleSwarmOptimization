@@ -28,13 +28,11 @@ def execute(
     if show_progress:
         counter = pb(counter)
 
-    populations.append(initialization(function.lower_bounds, function.upper_bounds, [population_size, function.dimension]))
-    evaluations.append(np.apply_along_axis(function, axis=1, arr=populations[-1]))
+    population = initialization(function.lower_bounds, function.upper_bounds, [population_size, function.dimension])
     for gen in counter:
-        new_population = algorithm(populations[-1], evaluations[-1])
-        new_population = np.maximum(function.lower_bounds, np.minimum(function.upper_bounds, new_population))
-        populations.append(new_population)
+        populations.append(population if isinstance(population, np.ndarray) else population.numpy())
         evaluations.append(np.apply_along_axis(function, axis=1, arr=populations[-1]))
+        population = algorithm(population, evaluations[-1])
 
     return np.stack(populations), np.stack(evaluations)
 
