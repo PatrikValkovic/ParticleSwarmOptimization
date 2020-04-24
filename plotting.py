@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as pltcolors
@@ -6,15 +8,25 @@ import cocoex
 import io
 import os
 from PIL import Image
-from IPython import display
-import base64
 
-def _plot_contours(function: cocoex.Problem):
+def _plot_contours(function: cocoex.Problem) -> None:
+    """
+    Plot function as matplotlib.contourf graph.
+    :param function: Function to plot.
+    """
     values, x, y, X, Y = _getValues(function)
     plt.contourf(x, y, values.reshape([len(x), len(y)]), cmap='cool', levels=255)
 
 
-def plot_population(function: cocoex.Problem, population, figsize=(12,8), title=None, color='r'):
+def plot_population(function: cocoex.Problem, population, figsize=(12,8), title=None, color='r') -> None:
+    """
+    Plot population over the function.
+    :param function: Function over which to plot (uses matplotlib.contourf).
+    :param population: Population in shape (population_size, 2).
+    :param figsize: Figure size
+    :param title: Title of the figure, by default uses `function.name`.
+    :param color: Color of the population.
+    """
     plt.figure(figsize=figsize)
     _plot_contours(function)
     plt.scatter(population[:,0], population[:,1], c=color)
@@ -22,7 +34,16 @@ def plot_population(function: cocoex.Problem, population, figsize=(12,8), title=
     plt.show()
 
 
-def plot_movement_of_individual(function: cocoex.Problem, member, figsize=(12, 8), title=None, color='r', line_alpha=0.1):
+def plot_movement_of_individual(function: cocoex.Problem, member, figsize=(12, 8), title=None, color='r', line_alpha=0.1) -> None:
+    """
+    Plot how individual moved over the generations.
+    :param function: Function over which to plot (uses matplotlib.contourf).
+    :param member: Member of the population in shape (generations, 2).
+    :param figsize: Figure size.
+    :param title: Title of the figure, by default uses `function.name`.
+    :param color: Color of the individual dots.
+    :param line_alpha: Alpha of the lines connecting member's positions.
+    """
     alpha_channel = np.linspace(0.01, 1.0, member.shape[0]).reshape(-1,1)
     base_color = pltcolors.to_rgb(color)
     final_color = np.concatenate([np.array([base_color]).repeat(member.shape[0], axis=0), alpha_channel], axis=1)
@@ -34,7 +55,16 @@ def plot_movement_of_individual(function: cocoex.Problem, member, figsize=(12, 8
     plt.title(title or function.name)
     plt.show()
 
-def animate_movement(function: cocoex.Problem, populations, figsize=(12,8), color='r', title=None):
+def animate_movement(function: cocoex.Problem, populations, figsize=(12,8), color='r', title=None) -> bytearray:
+    """
+    Transform population movement over the function.
+    :param function: Function over which to plot (uses matplotlib.contourf).
+    :param populations: Population in the shape (generations, population_size, 2).
+    :param figsize: Figure size.
+    :param color: Color of the dots representing members.
+    :param title: Title of the plot, by default uses `function.name`.
+    :return: Bytearray representing gif image.
+    """
     frames = []
     buffers = []
     for gen, population in zip(range(populations.shape[0]), populations):
@@ -54,3 +84,63 @@ def animate_movement(function: cocoex.Problem, populations, figsize=(12,8), colo
         content = f.read()
     os.remove("tmp.gif")
     return content
+
+
+def plot_graph(fitnesses: np.array, plotfn: Callable, **plot_params) -> None:
+    """
+    Plot line graph over the population. This function doesn't call `show` method.
+    :param fitnesses: Population fitnesses in the shape (generations, population_size)
+    :param plotfn: Aggregation function that should transform `fitnesses` into 1D array.
+    :param title: Title of the graph, if should be used.
+    :param plot_params: Params to be passed to the `matplotlib.plot` call.
+    """
+    to_plot = plotfn(fitnesses)
+    x_coords = np.arange(1, len(to_plot) + 1, dtype=int)
+    plt.plot(x_coords, to_plot, **plot_params)
+
+def plot_aggregated(fitnesses: np.array, plotfn: Callable, aggregationfn: Callable, **plot_params) -> None:
+    """
+    Plot line graph over the aggregated data. This function doesn't call `show` method.
+    :param fitnesses: Population fitnesses in the shape (repeats, generations, population_size)
+    :param plotfn: Aggregation function that should transform `fitnesses` into 1D array named `tmp`.
+    :param aggregationfn: Aggregation function that should transform array of shape (repeats, len(tmp)) into 1D array.
+    :param plot_params: Params to be passed to the `matplotlib.plot` call.
+    """
+    plots = np.stack([
+        plotfn(fitness) for fitness in fitnesses
+    ])
+    aggregated = aggregationfn(plots)
+    x_coords = np.arange(1, len(aggregated) + 1, dtype=int)
+    plt.plot(x_coords, aggregated, **plot_params)
+
+
+
+def plotfn_quantile(q):
+    return lambda v: np.quantile(v, q=q, axis=1)
+
+def plotfn_median():
+    return plotfn_quantile(0.5)
+
+def plotfn_90():
+    return plotfn_quantile(0.9)
+
+def plotfn_95():
+    return plotfn_quantile(0.95)
+
+def plotfn_mean():
+    return lambda v: np.mean(v, axis=1)
+
+def aggfn_quantile(q):
+    return lambda v: np.quantile(v, q=q, axis=0)
+
+def aggfn_median():
+    return aggfn_quantile(0.5)
+
+def aggfn_90():
+    return aggfn_quantile(0.9)
+
+def aggfn_95():
+    return aggfn_quantile(0.95)
+
+def aggfn_mean():
+    return lambda v: np.mean(v, axis=0)
