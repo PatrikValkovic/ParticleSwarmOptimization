@@ -130,6 +130,10 @@ def plotfn_95():
 def plotfn_mean():
     return lambda v: np.mean(v, axis=1)
 
+def plotfn_max():
+    return lambda v: np.max(v, axis=1)
+
+
 def aggfn_quantile(q):
     return lambda v: np.quantile(v, q=q, axis=0)
 
@@ -144,3 +148,6 @@ def aggfn_95():
 
 def aggfn_mean():
     return lambda v: np.mean(v, axis=0)
+
+def aggfn_max():
+    return lambda v: np.max(v, axis=0)
