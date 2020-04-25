@@ -115,22 +115,22 @@ def plot_aggregated(fitnesses: np.array, plotfn: Callable, aggregationfn: Callab
 
 
 
-def plotfn_quantile(q):
+def popfn_quantile(q):
     return lambda v: np.quantile(v, q=q, axis=1)
 
-def plotfn_median():
-    return plotfn_quantile(0.5)
+def popfn_median():
+    return popfn_quantile(0.5)
 
-def plotfn_90():
-    return plotfn_quantile(0.9)
+def popfn_90():
+    return popfn_quantile(0.9)
 
-def plotfn_95():
-    return plotfn_quantile(0.95)
+def popfn_95():
+    return popfn_quantile(0.95)
 
-def plotfn_mean():
+def popfn_mean():
     return lambda v: np.mean(v, axis=1)
 
-def plotfn_max():
+def popfn_max():
     return lambda v: np.max(v, axis=1)
 
 
