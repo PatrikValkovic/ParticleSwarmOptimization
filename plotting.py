@@ -3,11 +3,18 @@ from typing import Callable
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as pltcolors
-from functions import _getValues
 import cocoex
 import io
 import os
 from PIL import Image
+
+def _getValues(function: cocoex.Problem):
+    diff = 0.1
+    x, y = np.arange(function.lower_bounds[0], function.upper_bounds[0] + diff, diff), np.arange(
+        function.lower_bounds[1], function.upper_bounds[1] + diff, diff)
+    X, Y = np.meshgrid(x, y)
+    datapoints = np.stack([X.flatten(), Y.flatten()], axis=1)
+    return np.apply_along_axis(function, axis=1, arr=datapoints), x, y, X, Y
 
 def _plot_contours(function: cocoex.Problem) -> None:
     """
@@ -17,6 +24,20 @@ def _plot_contours(function: cocoex.Problem) -> None:
     values, x, y, X, Y = _getValues(function)
     plt.contourf(x, y, values.reshape([len(x), len(y)]), cmap='cool', levels=255)
 
+
+def plot_function_flat(function: cocoex.Problem, figsize=(12,8)):
+    plt.figure(figsize=figsize)
+    _plot_contours(function)
+    plt.title(function.name)
+    plt.show()
+
+def plot_function_3d(function: cocoex.Problem, figsize=(12,8)):
+    values, x, y, X, Y = _getValues(function)
+    plt.figure(figsize=figsize)
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(X, Y, values.reshape([len(x), len(y)]), cmap='cool')
+    plt.title(function.name)
+    plt.show()
 
 def plot_population(function: cocoex.Problem, population, figsize=(12,8), title=None, color='r') -> None:
     """

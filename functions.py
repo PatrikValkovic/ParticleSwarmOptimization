@@ -23,26 +23,3 @@ def get_suite(function_indices = None, dimension = None, instance_indices='2'):
 
 def get_suite_wrapper(function_indices = None, dimension = None, instance_indices='2'):
     return _FunctionsWrapper(get_suite(function_indices, dimension, instance_indices))
-
-def _getValues(function: cocoex.Problem):
-    diff = 0.1
-    x, y = np.arange(function.lower_bounds[0], function.upper_bounds[0] + diff, diff), np.arange(
-        function.lower_bounds[1], function.upper_bounds[1] + diff, diff)
-    X, Y = np.meshgrid(x, y)
-    datapoints = np.stack([X.flatten(), Y.flatten()], axis=1)
-    return np.apply_along_axis(function, axis=1, arr=datapoints), x, y, X, Y
-
-def plot_function_flat(function: cocoex.Problem, figsize=(12,8)):
-    values, x, y, X, Y = _getValues(function)
-    plt.figure(figsize=figsize)
-    plt.contourf(x, y, values.reshape([len(x), len(y)]), cmap='cool', levels=255)
-    plt.title(function.name)
-    plt.show()
-
-def plot_function_3d(function: cocoex.Problem, figsize=(12,8)):
-    values, x, y, X, Y = _getValues(function)
-    plt.figure(figsize=figsize)
-    ax = plt.axes(projection='3d')
-    ax.plot_surface(X, Y, values.reshape([len(x), len(y)]), cmap='cool')
-    plt.title(function.name)
-    plt.show()
