@@ -36,11 +36,11 @@ def execute(
 
     population = initialization(function.lower_bounds, function.upper_bounds, [population_size, function.dimension])
     for gen in counter:
-        populations.append(population if isinstance(population, np.ndarray) else population.numpy())
+        populations.append((population if isinstance(population, np.ndarray) else population.numpy()).copy())
         evaluations.append(evaluate(function, populations[-1]))
         population = algorithm(population, evaluations[-1], function)
 
-    return np.stack(populations), np.stack(evaluations)
+    return np.stack(populations, axis=0), np.stack(evaluations, axis=0)
 
 def execute_multiple(
         function: cocoex.Problem,

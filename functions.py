@@ -10,7 +10,7 @@ class _FunctionsWrapper:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._suite.free()
 
-def get_suite(function_indices = None, dimension = None, instance_indices='2'):
+def get_suite(function_indices = None, dimension = None, instance_indices='1'):
     function_indices = function_indices or []
     dimension = dimension or []
     function_indices_param = ",".join([str(n) for n in function_indices])

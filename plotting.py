@@ -7,6 +7,7 @@ import cocoex
 import io
 import os
 from PIL import Image
+from progressbar import progressbar
 
 def _getValues(function: cocoex.Problem):
     diff = 0.1
@@ -25,7 +26,7 @@ def _plot_contours(function: cocoex.Problem) -> None:
     plt.contourf(x, y, values.reshape([len(x), len(y)]), cmap='cool', levels=255)
 
 
-def plot_function_flat(function: cocoex.Problem, figsize=(12,8)):
+def plot_function_flat(function: cocoex.Problem, figsize=(12,12)):
     plt.figure(figsize=figsize)
     _plot_contours(function)
     plt.title(function.name)
@@ -39,7 +40,7 @@ def plot_function_3d(function: cocoex.Problem, figsize=(12,8)):
     plt.title(function.name)
     plt.show()
 
-def plot_population(function: cocoex.Problem, population, figsize=(12,8), title=None, color='r') -> None:
+def plot_population(function: cocoex.Problem, population, figsize=(12,12), title=None, color='r') -> None:
     """
     Plot population over the function.
     :param function: Function over which to plot (uses matplotlib.contourf).
@@ -55,7 +56,7 @@ def plot_population(function: cocoex.Problem, population, figsize=(12,8), title=
     plt.show()
 
 
-def plot_movement_of_individual(function: cocoex.Problem, member, figsize=(12, 8), title=None, color='r', line_alpha=0.1) -> None:
+def plot_movement_of_individual(function: cocoex.Problem, member, figsize=(12, 12), title=None, color='r', line_alpha=0.1) -> None:
     """
     Plot how individual moved over the generations.
     :param function: Function over which to plot (uses matplotlib.contourf).
@@ -76,7 +77,7 @@ def plot_movement_of_individual(function: cocoex.Problem, member, figsize=(12, 8
     plt.title(title or function.name)
     plt.show()
 
-def animate_movement(function: cocoex.Problem, populations, figsize=(12,8), color='r', title=None) -> bytearray:
+def animate_movement(function: cocoex.Problem, populations, show_progress=False, figsize=(12,12), color='r', title=None) -> bytearray:
     """
     Transform population movement over the function.
     :param function: Function over which to plot (uses matplotlib.contourf).
@@ -88,7 +89,12 @@ def animate_movement(function: cocoex.Problem, populations, figsize=(12,8), colo
     """
     frames = []
     buffers = []
-    for gen, population in zip(range(populations.shape[0]), populations):
+
+    iteration = zip(range(populations.shape[0]), populations)
+    if show_progress:
+        iteration = progressbar(iteration, max_value=populations.shape[0])
+
+    for gen, population in iteration:
         fig = plt.figure(figsize=figsize)
         _plot_contours(function)
         plt.scatter(population[:, 0], population[:, 1], c=color)
@@ -154,6 +160,9 @@ def popfn_mean():
 def popfn_max():
     return lambda v: np.max(v, axis=1)
 
+def popfn_min():
+    return lambda v: np.min(v, axis=1)
+
 
 def aggfn_quantile(q):
     return lambda v: np.quantile(v, q=q, axis=0)
@@ -172,3 +181,6 @@ def aggfn_mean():
 
 def aggfn_max():
     return lambda v: np.max(v, axis=0)
+
+def aggfn_min():
+    return lambda v: np.min(v, axis=0)
