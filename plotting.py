@@ -23,7 +23,8 @@ def _plot_contours(function: cocoex.Problem) -> None:
     :param function: Function to plot.
     """
     values, x, y, X, Y = _getValues(function)
-    plt.contourf(x, y, values.reshape([len(x), len(y)]), cmap='cool', levels=255)
+    plt.imshow(values.reshape([len(x), len(y)]), cmap='cool', extent=(-5, 5, -5, 5), interpolation='hermite', origin='lower')
+    #plt.contourf(x, y, values.reshape([len(x), len(y)]), cmap='cool', levels=255)
 
 
 def plot_function_flat(function: cocoex.Problem, figsize=(12,12)):
@@ -94,9 +95,11 @@ def animate_movement(function: cocoex.Problem, populations, show_progress=False,
     if show_progress:
         iteration = progressbar(iteration, max_value=populations.shape[0])
 
+    values, x, y, X, Y = _getValues(function)
+
     for gen, population in iteration:
         fig = plt.figure(figsize=figsize)
-        _plot_contours(function)
+        plt.imshow(values.reshape([len(x), len(y)]), cmap='cool', extent=(-5,5,-5,5), interpolation='hermite', origin='lower')
         plt.scatter(population[:, 0], population[:, 1], c=color)
         plt.title(title or function.name)
         buffers.append(io.BytesIO())
