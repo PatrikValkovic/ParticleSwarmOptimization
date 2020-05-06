@@ -1,6 +1,7 @@
 import cocoex
 import numpy as np
 from typing import Callable, Tuple
+from fstpso import FuzzyPSO
 from progressbar import progressbar as pb
 
 def evaluate(
@@ -71,6 +72,67 @@ def execute_multiple(
     evaluations = []
     for iteration in counter:
         population, evaluation = execute(function, algorithm, population_size, generations, initialization, False)
+        populations.append(population)
+        evaluations.append(evaluation)
+
+    return np.stack(populations), np.stack(evaluations)
+
+
+def fstpso(
+    function: cocoex.Problem,
+    population_size: int = 100,
+    generations: int = 100,
+    show_progress=False
+):
+    """
+    TODO
+    :param function:
+    :param population_size:
+    :param generations:
+    :param show_progress:
+    :return:
+    """
+    populations = []
+    values = []
+
+    def _callback(fpso):
+        populations.append(list(map(lambda particle: particle.B, fpso.Solutions)))
+        values.append(list(map(lambda particle: particle.CalculatedFitness, fpso.Solutions)))
+
+    FPSO = FuzzyPSO()
+    FPSO.set_search_space(np.stack([function.lower_bounds, function.upper_bounds], axis=1))
+    FPSO.set_swarm_size(population_size)
+    FPSO.set_fitness(function)
+    FPSO.solve_with_fstpso(callback={
+        'function': _callback,
+        'interval': 1
+    }, max_iter=generations-1, verbose=show_progress)
+    return np.array(populations), np.array(values)
+
+def fstpso_multiple(
+        function: cocoex.Problem,
+        repeats = 10,
+        population_size: int = 100,
+        generations: int = 100,
+        show_progress=False
+) -> Tuple[np.array, np.array]:
+    """
+    TODO
+    :param function:
+    :param repeats:
+    :param population_size:
+    :param generations:
+    :param show_progress:
+    :return:
+    """
+    counter = range(repeats)
+    if show_progress:
+        counter = pb(counter)
+
+    populations = []
+    evaluations = []
+    for iteration in counter:
+        population, evaluation = fstpso(function, population_size, generations, False)
         populations.append(population)
         evaluations.append(evaluation)
 

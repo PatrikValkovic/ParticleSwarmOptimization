@@ -170,10 +170,10 @@ class Standard2006:
                 c: float = 0.5 + np.log(2)):
         if not self.initialized:
             self.velocity = (np.random.uniform(self.lowerbound, self.upperbound, self.population.shape) - self.population) / 2
-            self.best_pos = self.population
-            self.best_val = values
-            self.bestneigh_pos = self.population
-            self.bestneigh_val = values
+            self.best_pos = self.population.copy()
+            self.best_val = values.copy()
+            self.bestneigh_pos = self.population.copy()
+            self.bestneigh_val = values.copy()
             self.initialized = True
 
         # update best positions
@@ -212,7 +212,7 @@ class Standard2006:
 
 class Standard2011:
     def __init__(self, lowerbound: np.ndarray, upperbound: np.ndarray, population, dimension):
-        self.population = np.random.uniform(lowerbound, upperbound, [population, dimension])
+        self.particles = np.random.uniform(lowerbound, upperbound, [population, dimension])
         self.lowerbound = lowerbound
         self.upperbound = upperbound
         self.initialized = False
@@ -223,51 +223,61 @@ class Standard2011:
         self.bestneigh_val = None
 
     def numpy(self):
-        return self.population
+        return self.particles
+
+    def _sample_from_sphere(self, center, radius, shape):
+        Y = np.random.normal(0, 1, shape)
+        u = np.random.random(shape[0])
+        r = radius * np.power(u, 1. / shape[1])
+        norm = np.linalg.norm(Y, axis=1)
+        x = (r/norm)[:, np.newaxis] * Y
+        assert (np.linalg.norm(x, axis=1) <= radius).all()
+        return x+center
 
     def execute(self, values: np.ndarray, function: cocoex.Problem,
                 K: int = 3,
                 w: float = 1 / (2 * np.log(2)),
                 c: float = 0.5 + np.log(2)):
         if not self.initialized:
-            self.velocity = (np.random.uniform(self.lowerbound, self.upperbound, self.population.shape) - self.population) / 2
-            self.best_pos = self.population
-            self.best_val = values
-            self.bestneigh_pos = self.population
-            self.bestneigh_val = values
+            self.velocity = (np.random.uniform(self.lowerbound, self.upperbound, self.particles.shape) - self.particles) / 2
+            self.best_pos = self.particles.copy()
+            self.best_val = values.copy()
+            self.bestneigh_pos = self.particles.copy()
+            self.bestneigh_val = values.copy()
             self.initialized = True
 
         # update best positions
         better_result = values < self.best_val
         self.best_val[better_result] = values[better_result]
-        self.best_pos[better_result] = self.population[better_result]
+        self.best_pos[better_result] = self.particles[better_result]
 
         # inform other particles
-        to_inform = np.random.choice(len(self.population), [K, len(self.population)])
+        to_inform = np.random.choice(len(self.particles), [K, len(self.particles)])
         for neighbor in to_inform:
             to_update = values < self.bestneigh_val[neighbor]
             self.bestneigh_val[neighbor[to_update]] = values[to_update]
-            self.bestneigh_pos[neighbor[to_update]] = self.population[to_update]
+            self.bestneigh_pos[neighbor[to_update]] = self.particles[to_update]
 
-        # generate point on hypersphere
-        G = self.population + np.random.uniform(0, c, self.velocity.shape) * (self.best_pos + self.bestneigh_pos - 2 * self.population) / 3
-        x_ = np.random.randn(len(self.population), function.dimension)
-        x_ /= np.linalg.norm(x_, axis=0)
-        x_ += G
+        # generate point in hypersphere
+        bg = self.particles + np.random.uniform(0, c, self.particles.shape) * (self.bestneigh_pos - self.particles)
+        bl = self.particles + np.random.uniform(0, c, self.particles.shape) * (self.best_pos - self.particles)
+        G = (self.particles + bl + bg) / 3
+        radius = np.linalg.norm(G - self.particles, axis=1)
+        x_ = self._sample_from_sphere(G, radius, self.velocity.shape)
 
         # update velocity
-        self.velocity = w * self.velocity + x_ - self.population
+        self.velocity = w * self.velocity + x_ - self.particles
         # udpate population
-        self.population = self.population + self.velocity
+        self.particles = self.particles + self.velocity
         # confinement
         to_zero = np.logical_or(
-            self.population < self.lowerbound[np.newaxis, :],
-            self.population > self.upperbound[np.newaxis, :]
+            self.particles < self.lowerbound[np.newaxis, :],
+            self.particles > self.upperbound[np.newaxis, :]
         )
         self.velocity[to_zero] = -0.5 * self.velocity[to_zero]
-        self.population = np.maximum(self.lowerbound, np.minimum(self.upperbound, self.population))
+        self.particles = np.maximum(self.lowerbound, np.minimum(self.upperbound, self.particles))
         return self
 
     @staticmethod
-    def initialize(lowerbound: np.ndarray, upperbound: np.ndarray, shape:tuple):
+    def init(lowerbound: np.ndarray, upperbound: np.ndarray, shape:tuple):
         return Standard2011(lowerbound, upperbound, *shape)
