@@ -206,7 +206,7 @@ class Standard2006:
         return self
 
     @staticmethod
-    def initialize(lowerbound: np.ndarray, upperbound: np.ndarray, shape:tuple):
+    def init(lowerbound: np.ndarray, upperbound: np.ndarray, shape:tuple):
         return Standard2006(lowerbound, upperbound, *shape)
 
 
