@@ -105,7 +105,7 @@ def fstpso(
     FPSO.solve_with_fstpso(callback={
         'function': _callback,
         'interval': 1
-    }, max_iter=generations-1, verbose=show_progress)
+    }, max_iter=generations-2, verbose=show_progress)
     return np.array(populations), np.array(values)
 
 def fstpso_multiple(
