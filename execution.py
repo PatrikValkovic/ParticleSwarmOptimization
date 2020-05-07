@@ -26,7 +26,7 @@ def execute(
     :param generations: How many generations to execute.
     :param initialization: Initialization of the first population.
     :param show_progress: Whether to show progress.
-    :return: tuple of population in shape (generations, population_size, function.dimension) and evaluations in shape (generations, population_size)
+    :return: Tuple of population in shape (generations, population_size, function.dimension) and evaluations in shape (generations, population_size).
     """
     populations = []
     evaluations = []
@@ -61,8 +61,7 @@ def execute_multiple(
     :param generations: How many generations to execute.
     :param initialization: Initialization of the first population.
     :param show_progress: Whether to show progress.
-    :return: tuple of population in shape (repeats, generations, population_size, function.dimension) and evaluations in shape (repeats, generations, population_size)
-    :return:
+    :return: Tuple of population in shape (repeats, generations, population_size, function.dimension) and evaluations in shape (repeats, generations, population_size).
     """
     counter = range(repeats)
     if show_progress:
@@ -85,12 +84,12 @@ def fstpso(
     show_progress=False
 ):
     """
-    TODO
-    :param function:
-    :param population_size:
-    :param generations:
-    :param show_progress:
-    :return:
+    Run FST-PSO algorithm.
+    :param function: Function to optimize.
+    :param population_size: Number of particles in the swarm.
+    :param generations: How many iterations to perform.
+    :param show_progress: Whether to show progress (verbose logging).
+    :return: Tuple of population in shape (generations, population_size, function.dimension) and evaluations in shape (generations, population_size).
     """
     populations = []
     values = []
@@ -117,13 +116,13 @@ def fstpso_multiple(
         show_progress=False
 ) -> Tuple[np.array, np.array]:
     """
-    TODO
-    :param function:
-    :param repeats:
-    :param population_size:
-    :param generations:
-    :param show_progress:
-    :return:
+    Run the FST-PSO algorithm multiple times.
+    :param function: Function to optimize.
+    :param repeats: How many times to repeat the execution.
+    :param population_size: Number of particles in the swarm.
+    :param generations: How many iterations to perform.
+    :param show_progress: Whether to show progress (verbose logging).
+    :return: Tuple of population in shape (repeats, generations, population_size, function.dimension) and evaluations in shape (repeats, generations, population_size).
     """
     counter = range(repeats)
     if show_progress:
