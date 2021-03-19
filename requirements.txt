@@ -1,7 +1,7 @@
 numpy==1.18.1
 matplotlib==3.2.1
 cocoex==2.3.3.5
-Pillow==7.1.1
+Pillow==8.1.1
 progressbar2==3.50.1 
 fst-pso==1.7.10
 jupyter==1.0.0     
